@@ -1,0 +1,24 @@
+__pycache__
+.vscode/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.egg-info/
+dist/
+build/
+.eggs/
+*.log
+*.sqlite3
+bot_venv/
+bot_venv/*
+check_bot_network.py
+check_remote_simple.py
+@TODO-Automated learning bots.txt
+/server/__init__.py
+/data/__init__.py
+/irc/__init__.py
+/irc/__pycache__
+/core/__init__.py
+/core/__pycache__
+/data/bot_world.db

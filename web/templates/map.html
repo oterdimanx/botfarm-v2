@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bot Ecosystem Map</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .nav {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 0 !important;;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky !important;
+            top: 0;
+            z-index: 0;
+        }
+        
+        #map-page .nav {
+            position: relative !important;
+            left: 0 !important;
+            width: 100% !important;
+            margin: 0 auto !important;
+            float: none !important;
+        }
+
+        .nav-container {
+            margin: 0 auto !important;;
+            padding: 0 20px;
+            display: inline-block !important;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .nav-links a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .nav-links a.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .map-container {
+            display: inline-block;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .map-grid {
+            display: grid;
+            gap: 2px;
+            border: 2px solid #333;
+            background: #eee;
+        }
+        
+        .map-cell {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            position: relative;
+            cursor: pointer;
+            z-index: 0;
+            opacity: 0.9;
+        }
+        
+        .bot-marker {
+            position: absolute !important;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 3px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        
+        .interaction-marker {
+            position: absolute !important;
+            width: 10px;
+            height: 10px;
+            background: gold;
+            border-radius: 50%;
+            border: 1px solid darkgoldenrod;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .bot-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 300px;
+            display: none;
+        }
+
+        .move-path {
+            animation: fadePath 5s ease-out;
+        }
+
+        @keyframes fadePath {
+            0% { opacity: 0.9; }
+            70% { opacity: 0.4; }
+            100% { opacity: 0.2; }
+        }
+
+        @keyframes highlightPath {
+            from { height: 3px; }
+            to { height: 6px; }
+        }
+
+        .map-controls {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .map-controls button, .map-controls select {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .map-controls button:hover {
+            background: #e9e9e9;
+        }
+
+        .home-marker {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .home-cell {
+            /* Special styling for home cells */
+            background-image: radial-gradient(circle, transparent 60%, rgba(255,215,0,0.2) 100%);
+            z-index: 99;
+        }
+    </style>
+</head>
+<body id="map-page">
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-title">🤖 Bot Farm</div>
+            <div class="nav-links">
+                <a href="/">📊 Dashboard</a>
+                <a href="/manage">⚙️ Manage Bots</a>
+                <a href="/map" class="active">🌍 Bots Map Visualisation</a>
+            </div>
+        </div>
+    </nav>
+    <div class="map-page">
+        <h2>🌍 Bot Ecosystem Map</h2>
+        
+        <div class="map-controls">
+            <button onclick="refreshMap()">🔄 Refresh</button>
+            <button onclick="toggleInteractions()">Toggle Interactions</button>
+            <div>Auto-refresh: <input type="checkbox" id="autoRefresh" checked></div>
+            <div>Zoom: <input type="range" id="zoom" min="20" max="60" value="30"></div>
+            <button onclick="toggleMoveHistory()">Toggle Move History</button>
+            <button onclick="clearAllPaths()">Clear All Paths</button>
+        </div>
+        <div class="map-controls">
+            <button onclick="toggleVisitedCells()">Toggle Visited Cells</button>
+            <button onclick="toggleMovePaths()">Toggle Move Paths</button>
+            <select onchange="changePathStyle(this.value)">
+                <option value="solid">Solid Lines</option>
+                <option value="dotted">Dotted Lines</option>
+                <option value="none">No Lines</option>
+            </select>
+            <button onclick="clearAllVisuals()">Clear All</button>
+        </div>
+        
+        <div class="map-container">
+            <div id="mapGrid" class="map-grid"></div>
+        </div>
+        
+        <div class="legend">
+            <h3>Legend:</h3>
+            <div class="legend-item"><div style="width:20px;height:20px;background:#a8d5a2;"></div> Plains</div>
+            <div class="legend-item"><div style="width:20px;height:20px;background:#2d5a27;"></div> Forest</div>
+            <div class="legend-item"><div style="width:20px;height:20px;background:#8b7355;"></div> Mountain</div>
+            <div class="legend-item"><div style="width:20px;height:20px;background:#ffd700;"></div> City</div>
+            <div class="legend-item"><div style="width:20px;height:20px;background:#1e90ff;"></div> Water</div>
+            <div class="legend-item"><div style="width:20px;height:20px;background:#f4a460;"></div> Desert</div>
+            <div class="legend-item"><div class="interaction-marker"></div> &nbsp;&nbsp; Recent Interaction</div>
+        </div>
+        
+        <div id="botInfo" class="bot-info"></div>
+    </div>
+
+    <script src="/static/map.js"></script>
+</body>
+</html>
